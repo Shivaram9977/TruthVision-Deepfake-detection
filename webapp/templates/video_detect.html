@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}Video Temporal Detection | TruthVision{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Upload & Config Column -->
+    <div class="col-lg-4">
+        <div class="card card-custom p-4 mb-4">
+            <h5 class="fw-bold mb-3 text-white"><i class="fa-solid fa-video me-2" style="color: var(--accent-orange);"></i> Upload Video</h5>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="dropzone-box mb-3" onclick="document.getElementById('videoInput').click();">
+                    <i class="fa-solid fa-film fa-3x mb-3"></i>
+                    <h6 class="fw-bold text-white">Click or Drag Video File</h6>
+                    <p class="small mb-0" style="color: var(--text-muted);">Supports MP4, AVI, MOV, MKV</p>
+                    <input type="file" id="videoInput" name="media_file" accept="video/*" class="d-none" onchange="this.form.submit();" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small" style="color: var(--text-secondary);">Sampling Rate (Frames per Second)</label>
+                    <select name="sample_rate" class="form-select">
+                        <option value="1.0">1.0 FPS (Fast Preview)</option>
+                        <option value="2.0" selected>2.0 FPS (Recommended Standard)</option>
+                        <option value="4.0">4.0 FPS (Fine-Grained Temporal)</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small" style="color: var(--text-secondary);">Max Frames to Analyze</label>
+                    <select name="max_frames" class="form-select">
+                        <option value="30">30 Frames</option>
+                        <option value="60" selected>60 Frames</option>
+                        <option value="120">120 Frames</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-orange w-100">
+                    <i class="fa-solid fa-chart-line me-2"></i> Run Video Timeline Analysis
+                </button>
+            </form>
+            {% if error %}
+            <div class="alert alert-dark mt-3 border border-danger small text-danger" role="alert">
+                <i class="fa-solid fa-circle-exclamation me-1"></i> {{ error }}
+            </div>
+            {% endif %}
+        </div>
+
+        {% if analyzed %}
+        <!-- Temporal Statistics Box -->
+        <div class="card card-custom p-4">
+            <h5 class="fw-bold mb-3 text-white"><i class="fa-solid fa-chart-pie me-2" style="color: var(--accent-orange);"></i> Video Statistics</h5>
+            <ul class="list-group list-group-flush bg-transparent border-0 small">
+                <li class="list-group-item bg-transparent text-light border-secondary border-opacity-25 px-0 py-2 d-flex justify-content-between">
+                    <span style="color: var(--text-muted);">Total Frames Processed:</span>
+                    <span class="text-white fw-semibold">{{ result.frames_analyzed }} frames</span>
+                </li>
+                <li class="list-group-item bg-transparent text-light border-secondary border-opacity-25 px-0 py-2 d-flex justify-content-between">
+                    <span style="color: var(--text-muted);">Flagged Fake Frames:</span>
+                    <span class="text-danger fw-semibold">{{ result.flagged_frames_count }} frames</span>
+                </li>
+                <li class="list-group-item bg-transparent text-light border-secondary border-opacity-25 px-0 py-2 d-flex justify-content-between">
+                    <span style="color: var(--text-muted);">Peak Fake Probability:</span>
+                    <span class="text-danger fw-semibold">{{ result.peak_fake_prob }}% (at {{ result.peak_timestamp }}s)</span>
+                </li>
+                <li class="list-group-item bg-transparent text-light border-secondary border-opacity-25 px-0 py-2 d-flex justify-content-between">
+                    <span style="color: var(--text-muted);">Flagged Time Intervals:</span>
+                    <span class="fw-semibold text-warning">
+                        {% for interval in result.flagged_intervals %}
+                        {{ interval }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}None
+                        {% endfor %}
+                    </span>
+                </li>
+            </ul>
+
+            <div class="mt-3">
+                <a href="{% url 'forensic_report' %}{% if record_id %}?record_id={{ record_id }}{% endif %}" target="_blank" class="btn btn-outline-mono btn-sm w-100 rounded-pill">
+                    <i class="fa-solid fa-file-contract me-1"></i> Export Video Forensic Certificate
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Video Results Column -->
+    <div class="col-lg-8">
+        {% if analyzed %}
+        <div class="card card-custom p-4 mb-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+                <div>
+                    <h4 class="fw-bold mb-1 text-white">Video Timeline: {{ result.media_name }}</h4>
+                    <span class="small" style="color: var(--text-muted);">Duration: {{ result.duration_sec }}s &bull; Sampled: {{ result.frames_analyzed }} frames</span>
+                </div>
+                <div>
+                    {% if result.classification == 'DEEPFAKE' %}
+                    <span class="badge-fake">
+                        <i class="fa-solid fa-triangle-exclamation"></i> DEEPFAKE ({{ result.confidence }}%)
+                    </span>
+                    {% else %}
+                    <span class="badge-real">
+                        <i class="fa-solid fa-circle-check"></i> AUTHENTIC ({{ result.confidence }}%)
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Temporal Timeline Graph -->
+            <div class="mb-4">
+                <h6 class="fw-bold small text-uppercase mb-2 text-white">
+                    <i class="fa-solid fa-wave-square me-1" style="color: var(--accent-orange);"></i> Frame-by-Frame Manipulation Probability Timeline
+                </h6>
+                <div style="height: 260px; background-color: var(--bg-surface); border-radius: 10px; padding: 15px; border: 1px solid var(--border-color);">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Video Player & Peak Frame Saliency -->
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="small fw-semibold mb-2" style="color: var(--text-secondary);">Uploaded Video Stream</div>
+                    <video src="{{ video_url }}" controls class="w-100 rounded-3 border border-secondary border-opacity-25" style="max-height: 260px;"></video>
+                </div>
+                <div class="col-md-6">
+                    <div class="small fw-semibold mb-2" style="color: var(--text-secondary);">Peak Suspicious Frame Saliency (Grad-CAM)</div>
+                    <div class="preview-img-container" style="max-height: 260px; border-color: var(--accent-orange);">
+                        {% if peak_gradcam_url %}
+                        <img src="{{ peak_gradcam_url }}" alt="Peak Grad-CAM Frame">
+                        {% else %}
+                        <div class="small p-3" style="color: var(--text-muted);">No suspicious frame anomalies detected.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- Empty State Guide -->
+        <div class="card card-custom p-5 text-center">
+            <i class="fa-solid fa-film fa-4x mb-3" style="color: var(--text-muted); opacity: 0.3;"></i>
+            <h5 class="fw-bold text-white">No Video Analyzed Yet</h5>
+            <p style="color: var(--text-muted); max-width: 480px; margin: 0 auto;">
+                Upload a video file to extract face frames across time. TruthVision computes frame-level authenticity trajectories and flags suspicious video segments with Grad-CAM saliency.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if analyzed %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const timestamps = {{ timestamps_json|safe }};
+        const probabilities = {{ probabilities_json|safe }};
+        renderVideoTimeline(timestamps, probabilities);
+    });
+</script>
+{% endif %}
+{% endblock %}

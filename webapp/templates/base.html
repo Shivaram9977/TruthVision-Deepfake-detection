@@ -1,0 +1,137 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TruthVision | AI Deepfake Detection & Forensic System{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand brand-logo d-flex align-items-center gap-2" href="{% url 'dashboard' %}">
+                <i class="fa-solid fa-shield-halved"></i> TruthVision
+            </a>
+            <button class="navbar-toggler text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+                <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-4 gap-2">
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_tab == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+                            <i class="fa-solid fa-gauge me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_tab == 'image' %}active{% endif %}" href="{% url 'image_detect' %}">
+                            <i class="fa-solid fa-image me-1"></i> Image Detection
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_tab == 'video' %}active{% endif %}" href="{% url 'video_detect' %}">
+                            <i class="fa-solid fa-video me-1"></i> Video Timeline
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_tab == 'webcam' %}active{% endif %}" href="{% url 'webcam' %}">
+                            <i class="fa-solid fa-camera me-1"></i> Live Scanner
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_tab == 'benchmarks' %}active{% endif %}" href="{% url 'benchmarks' %}">
+                            <i class="fa-solid fa-chart-line me-1"></i> Model Benchmarks
+                        </a>
+                    </li>
+                    {% if user.is_staff or user.is_superuser %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_tab == 'admin_portal' %}active{% endif %}" href="{% url 'admin_portal' %}">
+                            <i class="fa-solid fa-lock me-1"></i> Admin Portal
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <!-- User Profile & Auth Controls -->
+                <div class="d-flex align-items-center gap-3">
+                    <a href="{% url 'forensic_report' %}" target="_blank" class="btn btn-outline-mono btn-sm rounded-pill px-3">
+                        <i class="fa-solid fa-file-contract me-1"></i> Certificate
+                    </a>
+
+                    {% if user.is_authenticated %}
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-mono dropdown-toggle d-flex align-items-center gap-2 rounded-pill px-2 py-1" type="button" data-bs-toggle="dropdown">
+                            {% if user.profile.avatar %}
+                            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="rounded-circle object-fit-cover" style="width: 24px; height: 24px; border: 1.5px solid var(--accent-orange);">
+                            {% else %}
+                            <i class="fa-solid fa-user-circle"></i>
+                            {% endif %}
+                            <span>{{ user.username }}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end border-secondary border-opacity-50" style="background-color: var(--bg-card);">
+                            <li><span class="dropdown-item-text small text-muted"><i class="fa-solid fa-envelope me-1"></i> {{ user.email|default:"Signed in" }}</span></li>
+                            <li><hr class="dropdown-divider border-secondary border-opacity-25"></li>
+                            <li><a class="dropdown-item small" href="{% url 'profile_settings' %}"><i class="fa-solid fa-gear me-2 text-orange"></i> Account Settings</a></li>
+                            {% if user.is_staff or user.is_superuser %}
+                            <li><a class="dropdown-item small" href="{% url 'admin_portal' %}"><i class="fa-solid fa-shield-halved me-2"></i> Admin Portal</a></li>
+                            <li><a class="dropdown-item small" href="/admin/" target="_blank"><i class="fa-solid fa-sliders me-2"></i> Core Django Admin</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider border-secondary border-opacity-25"></li>
+                            <li><a class="dropdown-item small text-danger" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket me-2"></i> Sign Out</a></li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'login' %}" class="btn btn-outline-mono btn-sm rounded-pill px-3">
+                            <i class="fa-solid fa-right-to-bracket me-1"></i> Sign In
+                        </a>
+                        <a href="{% url 'signup' %}" class="btn btn-monochrome btn-sm rounded-pill px-3">
+                            <i class="fa-solid fa-user-plus me-1"></i> Sign Up
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Global Alert Messages -->
+    {% if messages %}
+    <div class="container-fluid px-4 pt-3">
+        {% for message in messages %}
+        <div class="alert alert-dark border border-white alert-dismissible fade show small d-flex align-items-center justify-content-between mb-2" role="alert" style="background-color: #0d0d0d; color: #ffffff;">
+            <div>
+                <i class="fa-solid fa-circle-info me-2"></i> {{ message }}
+            </div>
+            <button type="button" class="btn-close btn-close-white small" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content Body -->
+    <main class="container-fluid px-4 py-4 flex-grow-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-3 border-top" style="border-color: #262626 !important; color: #737373; font-size: 0.8rem;">
+        TruthVision &copy; AIML Deep Learning &amp; Computer Vision Forensic Intelligence System &bull; PyTorch + EfficientNet-B0 + Grad-CAM
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

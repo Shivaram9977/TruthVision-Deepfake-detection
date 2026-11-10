@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Account | TruthVision{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 75vh;">
+    <div class="col-md-6 col-lg-5">
+        <div class="card card-custom p-4 p-md-5">
+            <div class="text-center mb-4">
+                <div class="brand-logo mb-2">
+                    <i class="fa-solid fa-shield-halved"></i> TruthVision
+                </div>
+                <h4 class="fw-bold text-white mb-1">Create an Account</h4>
+                <p class="small" style="color: var(--text-muted);">Join the AI Deepfake Forensic Intelligence Platform</p>
+            </div>
+
+            <!-- Real Google OAuth Button -->
+            <a href="{% url 'google_oauth_redirect' %}" class="btn btn-outline-mono w-100 py-2 mb-3 d-flex align-items-center justify-content-center gap-2 text-decoration-none">
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                <span class="fw-semibold">Sign up with Google</span>
+            </a>
+
+            <div class="d-flex align-items-center my-3">
+                <hr class="flex-grow-1 border-secondary border-opacity-50">
+                <span class="px-2 small text-uppercase" style="color: var(--text-muted); font-size: 0.7rem;">or register with email</span>
+                <hr class="flex-grow-1 border-secondary border-opacity-50">
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                {% if form.errors %}
+                <div class="alert alert-dark border border-secondary small py-2 mb-3">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <div><i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> {{ error }}</div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label class="form-label small text-white">Username</label>
+                    {{ form.username }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-white">Email Address</label>
+                    {{ form.email }}
+                    <div class="form-text" style="color: var(--text-muted); font-size: 0.75rem;">A verification security OTP will be sent to this email.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-white">Password</label>
+                    {{ form.password }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-white">Confirm Password</label>
+                    {{ form.confirm_password }}
+                </div>
+
+                <button type="submit" class="btn btn-orange w-100 py-2 mt-2">
+                    <i class="fa-solid fa-user-plus me-1"></i> Create Account &amp; Send OTP
+                </button>
+            </form>
+
+            <div class="text-center mt-4 pt-3 border-top border-secondary border-opacity-25">
+                <span class="small" style="color: var(--text-muted);">Already have an account?</span>
+                <a href="{% url 'login' %}" class="small fw-bold ms-1 text-decoration-none" style="color: var(--accent-orange);">Sign In</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Professional Google Account Chooser Modal (Matching Real Google Identity Dark Theme) -->
+<div class="modal fade google-modal" id="googleAccountModal" tabindex="-1" aria-labelledby="googleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
+        <div class="modal-content">
+            <!-- Header with Google G Icon -->
+            <div class="google-brand-header">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                <span>Sign in with Google</span>
+            </div>
+
+            <!-- Title & Destination -->
+            <div class="google-modal-title">Choose an account</div>
+            <div class="google-modal-subtitle">to continue to <a href="#">truthvision.ai</a></div>
+
+            <!-- Form -->
+            <form id="googleSelectForm" action="{% url 'google_login' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="google_email" id="selectedGoogleEmail">
+                <input type="hidden" name="google_name" id="selectedGoogleName">
+
+                <!-- Accounts List with Dividers -->
+                <div class="google-accounts-list">
+                    <!-- Account 1: Shiva Ram -->
+                    <div class="google-account-item" onclick="selectGoogleAccount('shivaram6tech@gmail.com', 'Shiva Ram');">
+                        <div class="google-avatar" style="background-color: #e65100;">S</div>
+                        <div>
+                            <div class="google-account-name">Shiva Ram</div>
+                            <div class="google-account-email">shivaram6tech@gmail.com</div>
+                        </div>
+                    </div>
+
+                    <!-- Account 2: Shiva ram Shiva ram -->
+                    <div class="google-account-item" onclick="selectGoogleAccount('shivarams466@gmail.com', 'Shiva ram Shiva ram');">
+                        <div class="google-avatar" style="background-color: #00897b;">S</div>
+                        <div>
+                            <div class="google-account-name">Shiva ram Shiva ram</div>
+                            <div class="google-account-email">shivarams466@gmail.com</div>
+                        </div>
+                    </div>
+
+                    <!-- Use another account -->
+                    <div class="google-use-another" onclick="toggleCustomGoogleInput();">
+                        <div class="google-use-another-icon">
+                            <i class="fa-regular fa-circle-user"></i>
+                        </div>
+                        <div>Use another account</div>
+                    </div>
+                </div>
+
+                <!-- Custom Account Input (Hidden by default, reveals on click) -->
+                <div id="customGoogleInputBox" style="display: none;" class="p-3 bg-dark bg-opacity-75 rounded-3 border border-secondary border-opacity-50 mb-3">
+                    <label class="form-label small text-muted mb-1">Enter your Google Email</label>
+                    <div class="input-group input-group-sm">
+                        <input type="email" id="customGoogleEmail" class="form-control" placeholder="name@gmail.com">
+                        <button type="button" class="btn btn-orange" onclick="submitCustomGoogleAccount();">Continue</button>
+                    </div>
+                </div>
+
+                <!-- Disclaimer -->
+                <div class="google-modal-disclaimer">
+                    Before using this app, you can review truthvision.ai's <a href="#">Privacy Policy</a> and <a href="#">Terms of Service</a>.
+                </div>
+
+                <!-- Bottom Bar -->
+                <div class="google-modal-footer">
+                    <div>
+                        <span>English (United Kingdom)</span> <i class="fa-solid fa-caret-down ms-1"></i>
+                    </div>
+                    <div>
+                        <a href="#">Help</a>
+                        <a href="#">Privacy</a>
+                        <a href="#">Terms</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function selectGoogleAccount(email, name) {
+    document.getElementById('selectedGoogleEmail').value = email;
+    document.getElementById('selectedGoogleName').value = name;
+    document.getElementById('googleSelectForm').submit();
+}
+
+function toggleCustomGoogleInput() {
+    const box = document.getElementById('customGoogleInputBox');
+    if (box.style.display === 'none') {
+        box.style.display = 'block';
+        document.getElementById('customGoogleEmail').focus();
+    } else {
+        box.style.display = 'none';
+    }
+}
+
+function submitCustomGoogleAccount() {
+    const input = document.getElementById('customGoogleEmail');
+    const email = input.value.trim();
+    if (email && email.includes('@')) {
+        const name = email.split('@')[0];
+        selectGoogleAccount(email, name);
+    } else {
+        alert('Please enter a valid Google email address.');
+        input.focus();
+    }
+}
+</script>
+{% endblock %}

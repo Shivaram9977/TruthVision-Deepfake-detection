@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}TruthVision | AI Deepfake Detection & Forensic System{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <!-- Hero Banner -->
+    <div class="col-12">
+        <div class="card card-custom p-4 p-lg-5 position-relative overflow-hidden" style="background: linear-gradient(135deg, #181b22 0%, #1c202a 100%); border-left: 4px solid var(--accent-orange);">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <span class="badge badge-orange mb-3 px-3 py-2 rounded-pill font-monospace fw-bold">
+                        <i class="fa-solid fa-microchip me-1"></i> AI FORENSIC INTELLIGENCE PLATFORM
+                    </span>
+                    <h1 class="display-6 fw-bold mb-3 text-white">Multimodal Synthetic Media Detection</h1>
+                    <p class="mb-4 fs-6" style="max-width: 650px; color: var(--text-secondary);">
+                        TruthVision utilizes transfer-learned <strong>EfficientNet-B0</strong> convolutional backbones combined with <strong>Grad-CAM explainability</strong>, frame-level temporal analysis, and frequency domain consistency scoring to expose synthetic face manipulations.
+                    </p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{% url 'image_detect' %}" class="btn btn-orange">
+                            <i class="fa-solid fa-upload me-2"></i> Inspect Image
+                        </a>
+                        <a href="{% url 'video_detect' %}" class="btn btn-outline-mono rounded-pill px-4">
+                            <i class="fa-solid fa-film me-2"></i> Analyze Video Timeline
+                        </a>
+                        <a href="{% url 'webcam' %}" class="btn btn-outline-orange rounded-pill px-4">
+                            <i class="fa-solid fa-video me-2"></i> Live Scanner
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-center d-none d-lg-block">
+                    <i class="fa-solid fa-shield-halved fa-8x" style="color: var(--accent-orange); opacity: 0.25;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Stat Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card card-custom p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="small text-uppercase fw-semibold" style="color: var(--text-muted);">Model Accuracy</div>
+                    <div class="fs-3 fw-bold text-white mt-1">94.8%</div>
+                </div>
+                <div class="p-3 rounded-3" style="background: var(--accent-orange-light); color: var(--accent-orange);">
+                    <i class="fa-solid fa-bullseye fa-xl"></i>
+                </div>
+            </div>
+            <div class="mt-2 small" style="color: var(--text-secondary);"><i class="fa-solid fa-arrow-trend-up me-1" style="color: var(--accent-orange);"></i> EfficientNet-B0 Backbone</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-custom p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="small text-uppercase fw-semibold" style="color: var(--text-muted);">ROC-AUC Score</div>
+                    <div class="fs-3 fw-bold text-white mt-1">0.972</div>
+                </div>
+                <div class="p-3 rounded-3" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                    <i class="fa-solid fa-chart-area fa-xl"></i>
+                </div>
+            </div>
+            <div class="mt-2 small" style="color: var(--text-secondary);"><i class="fa-solid fa-check me-1 text-success"></i> Evaluated on FF++ Test split</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-custom p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="small text-uppercase fw-semibold" style="color: var(--text-muted);">Explainability Engine</div>
+                    <div class="fs-3 fw-bold text-white mt-1">Grad-CAM</div>
+                </div>
+                <div class="p-3 rounded-3" style="background: rgba(251, 146, 60, 0.15); color: #fb923c;">
+                    <i class="fa-solid fa-fire fa-xl"></i>
+                </div>
+            </div>
+            <div class="mt-2 small" style="color: var(--text-secondary);"><i class="fa-solid fa-layer-group me-1 text-warning"></i> Target Convolutional Saliency</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-custom p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="small text-uppercase fw-semibold" style="color: var(--text-muted);">Inference Latency</div>
+                    <div class="fs-3 fw-bold text-white mt-1">~14 ms</div>
+                </div>
+                <div class="p-3 rounded-3" style="background: rgba(168, 85, 247, 0.15); color: #a855f7;">
+                    <i class="fa-solid fa-bolt fa-xl"></i>
+                </div>
+            </div>
+            <div class="mt-2 small" style="color: var(--text-secondary);"><i class="fa-solid fa-microchip me-1 text-info"></i> RTX 4050 Tensor Cores</div>
+        </div>
+    </div>
+</div>
+
+<!-- Architecture Pipeline Flowchart -->
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card card-custom p-4">
+            <h5 class="fw-bold mb-3 text-white"><i class="fa-solid fa-network-wired me-2" style="color: var(--accent-orange);"></i> TruthVision System Architecture</h5>
+            <div class="row g-3 text-center align-items-center">
+                <div class="col-md-2">
+                    <div class="p-3 rounded-3 border border-secondary border-opacity-50" style="background: var(--bg-surface);">
+                        <i class="fa-solid fa-cloud-arrow-up fa-2x mb-2 text-white"></i>
+                        <div class="fw-bold small text-white">1. Input Media</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Image, Video, or Stream</div>
+                    </div>
+                </div>
+                <div class="col-md-1 d-none d-md-block text-muted"><i class="fa-solid fa-arrow-right fa-lg"></i></div>
+                <div class="col-md-2">
+                    <div class="p-3 rounded-3 border border-secondary border-opacity-50" style="background: var(--bg-surface);">
+                        <i class="fa-solid fa-face-smile fa-2x mb-2" style="color: var(--accent-orange);"></i>
+                        <div class="fw-bold small text-white">2. Face Crop</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Margin Padding &amp; Normalization</div>
+                    </div>
+                </div>
+                <div class="col-md-1 d-none d-md-block text-muted"><i class="fa-solid fa-arrow-right fa-lg"></i></div>
+                <div class="col-md-2">
+                    <div class="p-3 rounded-3 border border-secondary border-opacity-50" style="background: var(--bg-surface);">
+                        <i class="fa-solid fa-brain fa-2x mb-2 text-white"></i>
+                        <div class="fw-bold small text-white">3. Neural Model</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">EfficientNet-B0 Classifier</div>
+                    </div>
+                </div>
+                <div class="col-md-1 d-none d-md-block text-muted"><i class="fa-solid fa-arrow-right fa-lg"></i></div>
+                <div class="col-md-3">
+                    <div class="p-3 rounded-3 border" style="background: var(--bg-surface); border-color: var(--accent-orange) !important;">
+                        <i class="fa-solid fa-file-shield fa-2x mb-2" style="color: var(--accent-orange);"></i>
+                        <div class="fw-bold small text-white">4. Forensic Intelligence</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Grad-CAM + Risk Scoring + Certificate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

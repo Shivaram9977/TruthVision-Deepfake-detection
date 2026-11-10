@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Live Webcam Deepfake Scanner | TruthVision{% endblock %}
+
+{% block content %}
+<div class="row g-4 justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-custom p-4 text-center">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0 text-white"><i class="fa-solid fa-camera me-2" style="color: var(--accent-orange);"></i> Real-Time Live Face Authenticity Scanner</h5>
+                <span id="liveProbBadge" class="badge badge-orange px-3 py-2 rounded-pill font-monospace">
+                    Scanner Idle
+                </span>
+            </div>
+
+            <!-- Webcam & HUD Stream Container -->
+            <div class="position-relative mx-auto rounded-3 overflow-hidden border border-secondary border-opacity-50" style="max-width: 640px; background: #000; aspect-ratio: 4/3;">
+                <video id="webcamFeed" autoplay playsinline muted class="w-100 h-100 object-fit-cover"></video>
+                <canvas id="hudCanvas" class="position-absolute top-0 start-0 w-100 h-100"></canvas>
+            </div>
+
+            <!-- Controls & Live Badges -->
+            <div class="mt-4 d-flex flex-wrap justify-content-center align-items-center gap-3">
+                <button id="startWebcamBtn" class="btn btn-orange px-4">
+                    <i class="fa-solid fa-play me-2"></i> Start Live Feed
+                </button>
+                <button id="stopWebcamBtn" class="btn btn-outline-danger px-4 rounded-pill d-none">
+                    <i class="fa-solid fa-stop me-2"></i> Stop Camera
+                </button>
+                <div id="liveStatusBadge" class="badge-real d-inline-flex">
+                    <i class="fa-solid fa-satellite-dish"></i> Ready for Capture
+                </div>
+            </div>
+
+            <div class="mt-4 p-3 rounded-3 text-start border border-secondary border-opacity-25" style="background: var(--bg-surface);">
+                <h6 class="fw-bold small text-white"><i class="fa-solid fa-circle-info me-1" style="color: var(--accent-orange);"></i> How Live Scanning Works:</h6>
+                <p class="small mb-0" style="color: var(--text-muted);">
+                    Your local webcam video is sampled directly inside the browser using HTML5 Canvas. Each sampled frame is preprocessed through TruthVision's face detection bounding engine and evaluated against the EfficientNet-B0 transfer backbone in real-time.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

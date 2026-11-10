@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify Security Code | TruthVision{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 75vh;">
+    <div class="col-md-5 col-lg-4">
+        <div class="card card-custom p-4 p-md-5 text-center">
+            <div class="mb-4">
+                <div class="p-3 d-inline-block rounded-circle mb-3" style="background: var(--accent-orange-light); color: var(--accent-orange);">
+                    <i class="fa-solid fa-envelope-circle-check fa-2x"></i>
+                </div>
+                <h4 class="fw-bold text-white mb-1">Security Verification</h4>
+                <p class="small" style="color: var(--text-secondary);">
+                    We have dispatched a 6-digit security OTP to:
+                    <br><strong class="text-white">{{ user_email }}</strong>
+                </p>
+            </div>
+
+            <div class="alert alert-dark border border-secondary border-opacity-50 small mb-4 text-start" style="background: var(--bg-surface);">
+                <i class="fa-solid fa-circle-info text-warning me-1"></i>
+                <span class="text-white">Check your email inbox (and spam/junk folder) for the 6-digit code.</span>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="form-label small text-uppercase fw-bold" style="color: var(--text-muted); letter-spacing: 1px;">Enter 6-Digit OTP</label>
+                    {{ form.otp }}
+                </div>
+
+                <button type="submit" class="btn btn-orange w-100 py-2">
+                    <i class="fa-solid fa-shield-check me-1"></i> Verify &amp; Sign In
+                </button>
+            </form>
+
+            <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small" id="timerNotice" style="color: var(--text-muted);">
+                        Resend code in: <strong id="countdownTimer" class="text-orange" style="color: var(--accent-orange); font-family: monospace; font-size: 0.95rem;">01:00</strong>
+                    </span>
+                    <a id="resendBtn" href="{% url 'resend_otp' %}" class="btn btn-sm btn-outline-orange rounded-pill disabled" style="opacity: 0.5; pointer-events: none; transition: all 0.3s ease;">
+                        <i class="fa-solid fa-rotate-right me-1"></i> Resend Code
+                    </a>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <a href="{% url 'login' %}" class="small text-muted text-decoration-none">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Back to Login
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 60-second countdown timer for OTP resend
+(function() {
+    let timeLeft = 60;
+    const countdownEl = document.getElementById('countdownTimer');
+    const resendBtn = document.getElementById('resendBtn');
+    const timerNotice = document.getElementById('timerNotice');
+
+    function updateTimer() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        countdownEl.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+        if (timeLeft > 0) {
+            timeLeft--;
+            setTimeout(updateTimer, 1000);
+        } else {
+            countdownEl.textContent = "00:00";
+            timerNotice.innerHTML = "<span class='text-white'>Didn't receive the OTP?</span>";
+            resendBtn.classList.remove('disabled');
+            resendBtn.style.opacity = '1';
+            resendBtn.style.pointerEvents = 'auto';
+            resendBtn.style.boxShadow = '0 0 12px rgba(249, 115, 22, 0.4)';
+        }
+    }
+
+    updateTimer();
+})();
+</script>
+{% endblock %}

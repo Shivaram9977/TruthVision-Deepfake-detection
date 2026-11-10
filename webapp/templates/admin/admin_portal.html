@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Executive Portal | TruthVision{% endblock %}
+
+{% block content %}
+<!-- Top Executive Header -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card card-custom p-4" style="background: linear-gradient(135deg, #181b22 0%, #1c202a 100%); border-left: 4px solid var(--accent-orange);">
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+                <div>
+                    <span class="badge badge-orange mb-2 px-3 py-1 rounded-pill font-monospace fw-bold">
+                        <i class="fa-solid fa-lock me-1"></i> ADMIN EXECUTIVE PORTAL
+                    </span>
+                    <h2 class="fw-bold text-white mb-1">System Intelligence &amp; Audit Dashboard</h2>
+                    <p class="small mb-0" style="color: var(--text-secondary);">
+                        Real-time forensic telemetry, detection analytics, user monitoring, and audit controls.
+                    </p>
+                </div>
+                <div class="d-flex gap-2 mt-3 mt-md-0">
+                    <a href="/admin/" target="_blank" class="btn btn-outline-mono btn-sm rounded-pill px-3">
+                        <i class="fa-solid fa-sliders me-1"></i> Django Core Admin
+                    </a>
+                    <a href="{% url 'image_detect' %}" class="btn btn-orange btn-sm rounded-pill px-3">
+                        <i class="fa-solid fa-plus me-1"></i> New Scan
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Performance Metric Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <div class="card card-custom p-3 text-center">
+            <div class="small text-uppercase fw-semibold" style="color: var(--text-muted);">Total Users</div>
+            <div class="fs-3 fw-bold text-white mt-1">{{ total_users }}</div>
+            <div class="small mt-1" style="color: var(--text-secondary);"><i class="fa-solid fa-users me-1 text-white"></i> Active Accounts</div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card card-custom p-3 text-center">
+            <div class="small text-uppercase fw-semibold" style="color: var(--text-muted);">Total Scans</div>
+            <div class="fs-3 fw-bold text-white mt-1">{{ total_records }}</div>
+            <div class="small mt-1" style="color: var(--text-secondary);"><i class="fa-solid fa-microchip me-1 text-white"></i> Media Inspected</div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card card-custom p-3 text-center">
+            <div class="small text-uppercase fw-semibold" style="color: var(--text-muted);">Deepfakes Flagged</div>
+            <div class="fs-3 fw-bold text-danger mt-1">{{ deepfake_count }}</div>
+            <div class="small mt-1" style="color: var(--text-secondary);"><i class="fa-solid fa-triangle-exclamation me-1 text-danger"></i> Synthetic Assets</div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card card-custom p-3 text-center">
+            <div class="small text-uppercase fw-semibold" style="color: var(--text-muted);">Authentic Media</div>
+            <div class="fs-3 fw-bold text-success mt-1">{{ real_count }}</div>
+            <div class="small mt-1" style="color: var(--text-secondary);"><i class="fa-solid fa-circle-check me-1 text-success"></i> Verified Real</div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card card-custom p-3 text-center">
+            <div class="small text-uppercase fw-semibold" style="color: var(--text-muted);">Avg Threat Risk</div>
+            <div class="fs-3 fw-bold mt-1" style="color: var(--accent-orange);">{{ avg_risk }}%</div>
+            <div class="small mt-1" style="color: var(--text-secondary);"><i class="fa-solid fa-gauge me-1" style="color: var(--accent-orange);"></i> Threat Index</div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card card-custom p-3 text-center">
+            <div class="small text-uppercase fw-semibold" style="color: var(--text-muted);">Today's Scans</div>
+            <div class="fs-3 fw-bold text-white mt-1">{{ today_scans }}</div>
+            <div class="small mt-1" style="color: var(--text-secondary);"><i class="fa-solid fa-calendar-day me-1 text-white"></i> 24h Activity</div>
+        </div>
+    </div>
+</div>
+
+<!-- Detection Records Audit Log & User Management Tabs -->
+<div class="row g-4">
+    <!-- Audit Log -->
+    <div class="col-lg-8">
+        <div class="card card-custom p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-white mb-0"><i class="fa-solid fa-clock-rotate-left me-2" style="color: var(--accent-orange);"></i> Detection Audit Log</h5>
+                
+                <!-- Filter & Search Form -->
+                <form method="GET" class="d-flex gap-2 mt-2 mt-md-0">
+                    <input type="text" name="q" value="{{ search_query }}" class="form-control form-control-sm" placeholder="Search media or user..." style="max-width: 180px;">
+                    <select name="media_type" class="form-select form-select-sm" style="max-width: 120px;" onchange="this.form.submit();">
+                        <option value="">All Types</option>
+                        <option value="IMAGE" {% if media_filter == 'IMAGE' %}selected{% endif %}>Image</option>
+                        <option value="VIDEO" {% if media_filter == 'VIDEO' %}selected{% endif %}>Video</option>
+                    </select>
+                    <select name="verdict" class="form-select form-select-sm" style="max-width: 130px;" onchange="this.form.submit();">
+                        <option value="">All Verdicts</option>
+                        <option value="REAL" {% if verdict_filter == 'REAL' %}selected{% endif %}>Authentic</option>
+                        <option value="DEEPFAKE" {% if verdict_filter == 'DEEPFAKE' %}selected{% endif %}>Deepfake</option>
+                    </select>
+                    <button type="submit" class="btn btn-outline-mono btn-sm"><i class="fa-solid fa-magnifying-glass"></i></button>
+                </form>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-custom table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Media Asset</th>
+                            <th>Type</th>
+                            <th>Verdict</th>
+                            <th>Risk</th>
+                            <th>Technique</th>
+                            <th>User</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in records %}
+                        <tr>
+                            <td class="fw-semibold text-white small" style="max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                {{ r.media_name }}
+                            </td>
+                            <td><span class="badge bg-dark text-white border border-secondary">{{ r.media_type }}</span></td>
+                            <td>
+                                {% if r.classification == 'DEEPFAKE' %}
+                                <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50 px-2 py-1">DEEPFAKE</span>
+                                {% else %}
+                                <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-2 py-1 fw-bold">AUTHENTIC</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-white fw-semibold small">{{ r.risk_score|floatformat:1 }}%</td>
+                            <td class="small" style="color: var(--text-secondary); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                {{ r.likely_technique }}
+                            </td>
+                            <td class="small" style="color: var(--text-muted);">
+                                {{ r.user.username|default:"Guest" }}
+                            </td>
+                            <td class="small" style="color: var(--text-muted); white-space: nowrap;">
+                                {{ r.created_at|date:"M d, H:i" }}
+                            </td>
+                            <td class="text-nowrap">
+                                <a href="{% url 'forensic_report' %}?record_id={{ r.id }}" target="_blank" class="btn btn-outline-mono btn-sm py-0 px-2" title="View Certificate">
+                                    <i class="fa-solid fa-file-contract"></i>
+                                </a>
+                                <a href="{% url 'admin_delete_record' r.id %}" onclick="return confirm('Delete this record?');" class="btn btn-outline-danger btn-sm py-0 px-2 ms-1" title="Delete">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4" style="color: var(--text-muted);">
+                                <i class="fa-solid fa-inbox fa-2x mb-2 d-block opacity-25"></i>
+                                No detection records found matching criteria.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Management List -->
+    <div class="col-lg-4">
+        <div class="card card-custom p-4 h-100">
+            <h5 class="fw-bold text-white mb-3"><i class="fa-solid fa-users-gear me-2" style="color: var(--accent-orange);"></i> Registered Accounts</h5>
+            <div class="table-responsive">
+                <table class="table table-custom table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Scans</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users_list %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-white small">{{ u.username }}</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">{{ u.email|default:"No email" }}</div>
+                            </td>
+                            <td>
+                                {% if u.is_superuser %}
+                                <span class="badge badge-orange px-2 py-0 fw-bold" style="font-size: 0.65rem;">ROOT</span>
+                                {% elif u.is_staff %}
+                                <span class="badge bg-dark text-white border border-secondary px-2 py-0" style="font-size: 0.65rem;">STAFF</span>
+                                {% else %}
+                                <span class="badge bg-dark text-secondary border border-secondary px-2 py-0" style="font-size: 0.65rem;">USER</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-white small fw-bold">{{ u.scan_count }}</td>
+                            <td class="small" style="color: var(--text-muted); font-size: 0.75rem;">{{ u.date_joined|date:"M d" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-3" style="color: var(--text-muted);">No registered users yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

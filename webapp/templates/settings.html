@@ -1,0 +1,498 @@
+{% extends 'base.html' %}
+
+{% block title %}Account Settings & Preferences | TruthVision{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Profile Banner & Stats Card -->
+    <div class="card card-custom p-4 mb-4">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                {% if profile.avatar %}
+                <img src="{{ profile.avatar.url }}" alt="{{ profile_user.username }}" class="rounded-circle object-fit-cover shadow-sm" style="width: 64px; height: 64px; min-width: 64px; border: 2px solid var(--accent-orange); box-shadow: 0 0 16px rgba(249, 115, 22, 0.4);">
+                {% else %}
+                <div class="google-avatar" style="width: 64px; height: 64px; min-width: 64px; font-size: 26px; background: linear-gradient(135deg, #f97316, #ea580c); box-shadow: 0 0 16px rgba(249, 115, 22, 0.4);">
+                    {{ profile_user.username|make_list|first|upper }}
+                </div>
+                {% endif %}
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <h4 class="fw-bold text-white mb-0">{{ profile_user.get_full_name|default:profile_user.username }}</h4>
+                        {% if profile_user.is_superuser %}
+                        <span class="badge bg-danger rounded-pill small px-2">Super Admin</span>
+                        {% elif profile_user.is_staff %}
+                        <span class="badge bg-warning text-dark rounded-pill small px-2">Staff Analyst</span>
+                        {% else %}
+                        <span class="badge bg-secondary rounded-pill small px-2">Verified Analyst</span>
+                        {% endif %}
+                    </div>
+                    <div class="small" style="color: var(--text-secondary);">
+                        <i class="fa-solid fa-envelope me-1"></i> {{ profile_user.email|default:"No email registered" }}
+                        <span class="mx-2">&bull;</span>
+                        <i class="fa-solid fa-building me-1"></i> {{ profile.organization }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 align-items-center">
+                <div class="text-end me-2 d-none d-md-block">
+                    <div class="small text-muted text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Media Scans Performed</div>
+                    <div class="fw-bold text-white fs-5">{{ user_scans_count }}</div>
+                </div>
+                <a href="{% url 'export_scan_history' %}" class="btn btn-sm btn-outline-orange rounded-pill px-3">
+                    <i class="fa-solid fa-download me-1"></i> Export Audit CSV
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Settings Navigation Grid -->
+    <div class="row g-4">
+        <!-- Settings Tabs Nav -->
+        <div class="col-lg-3">
+            <div class="card card-custom p-3">
+                <div class="nav flex-column nav-pills gap-1" id="settings-tab" role="tablist">
+                    <button class="nav-link active text-start py-2 px-3 rounded-3 d-flex align-items-center gap-2" id="tab-profile-btn" data-bs-toggle="pill" data-bs-target="#tab-profile" type="button" role="tab">
+                        <i class="fa-solid fa-user text-orange" style="width: 20px;"></i>
+                        <span>Profile &amp; Identity</span>
+                    </button>
+
+                    <button class="nav-link text-start py-2 px-3 rounded-3 d-flex align-items-center gap-2" id="tab-ai-btn" data-bs-toggle="pill" data-bs-target="#tab-ai" type="button" role="tab">
+                        <i class="fa-solid fa-brain text-orange" style="width: 20px;"></i>
+                        <span>AI Inference Engine</span>
+                    </button>
+
+                    <button class="nav-link text-start py-2 px-3 rounded-3 d-flex align-items-center gap-2" id="tab-security-btn" data-bs-toggle="pill" data-bs-target="#tab-security" type="button" role="tab">
+                        <i class="fa-solid fa-shield-halved text-orange" style="width: 20px;"></i>
+                        <span>Security &amp; 2FA OTP</span>
+                    </button>
+
+                    <button class="nav-link text-start py-2 px-3 rounded-3 d-flex align-items-center gap-2" id="tab-api-btn" data-bs-toggle="pill" data-bs-target="#tab-api" type="button" role="tab">
+                        <i class="fa-solid fa-key text-orange" style="width: 20px;"></i>
+                        <span>API Keys &amp; Webhooks</span>
+                    </button>
+
+                    <button class="nav-link text-start py-2 px-3 rounded-3 d-flex align-items-center gap-2" id="tab-audit-btn" data-bs-toggle="pill" data-bs-target="#tab-audit" type="button" role="tab">
+                        <i class="fa-solid fa-clock-rotate-left text-orange" style="width: 20px;"></i>
+                        <span>Scan Audit Log</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Contents Area -->
+        <div class="col-lg-9">
+            <div class="tab-content" id="settings-tabContent">
+                
+                <!-- 1. PROFILE & IDENTITY TAB -->
+                <div class="tab-pane fade show active" id="tab-profile" role="tabpanel">
+                    <div class="card card-custom p-4">
+                        <div class="border-bottom border-secondary border-opacity-25 pb-3 mb-4">
+                            <h5 class="fw-bold text-white mb-1"><i class="fa-solid fa-user-pen text-orange me-2"></i>Edit Profile Information</h5>
+                            <p class="small text-muted mb-0">Manage your forensic analyst identity, avatar image, and public organization details.</p>
+                        </div>
+
+                        <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="update_profile">
+                            <input type="hidden" name="remove_avatar" id="remove_avatar_input" value="false">
+
+                            <!-- Avatar Upload Section -->
+                            <div class="p-3 mb-4 rounded-3 border border-secondary border-opacity-25" style="background-color: rgba(255,255,255,0.02);">
+                                <label class="form-label small text-white fw-semibold mb-2">Profile Photo / Avatar</label>
+                                <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3">
+                                    <div class="position-relative">
+                                        {% if profile.avatar %}
+                                        <img id="avatar-preview-img" src="{{ profile.avatar.url }}" alt="{{ profile_user.username }}" class="rounded-circle object-fit-cover shadow" style="width: 72px; height: 72px; border: 2px solid var(--accent-orange);">
+                                        <div id="avatar-preview-fallback" class="google-avatar d-none" style="width: 72px; height: 72px; font-size: 28px; background: linear-gradient(135deg, #f97316, #ea580c);">
+                                            {{ profile_user.username|make_list|first|upper }}
+                                        </div>
+                                        {% else %}
+                                        <img id="avatar-preview-img" src="" alt="Preview" class="rounded-circle object-fit-cover shadow d-none" style="width: 72px; height: 72px; border: 2px solid var(--accent-orange);">
+                                        <div id="avatar-preview-fallback" class="google-avatar" style="width: 72px; height: 72px; font-size: 28px; background: linear-gradient(135deg, #f97316, #ea580c);">
+                                            {{ profile_user.username|make_list|first|upper }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex flex-wrap gap-2 mb-2">
+                                            <label class="btn btn-sm btn-outline-orange rounded-pill px-3 mb-0 cursor-pointer">
+                                                <i class="fa-solid fa-camera me-1"></i> Choose New Photo
+                                                <input type="file" name="avatar" id="avatar_file_input" class="d-none" accept="image/png, image/jpeg, image/webp, image/gif">
+                                            </label>
+                                            {% if profile.avatar %}
+                                            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" id="remove-avatar-btn">
+                                                <i class="fa-solid fa-trash me-1"></i> Remove Photo
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                        <div class="form-text text-muted" style="font-size: 0.75rem;">
+                                            JPG, PNG, GIF, or WebP. Max file size: 5MB. Recommended square aspect ratio.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small text-white">First Name</label>
+                                    <input type="text" name="first_name" class="form-control" value="{{ profile_user.first_name }}" placeholder="e.g. Shiva">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-white">Last Name</label>
+                                    <input type="text" name="last_name" class="form-control" value="{{ profile_user.last_name }}" placeholder="e.g. Ram">
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small text-white">Email Address</label>
+                                    <input type="email" name="email" class="form-control" value="{{ profile_user.email }}" required>
+                                    <div class="form-text text-muted" style="font-size: 0.75rem;">Used for 2FA verification codes and forensic notifications.</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-white">Organization / Lab</label>
+                                    <input type="text" name="organization" class="form-control" value="{{ profile.organization }}" placeholder="e.g. Cyber Forensics Unit">
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label small text-white">Bio / Role Description</label>
+                                <textarea name="bio" class="form-control" rows="3" placeholder="Tell us about your forensic research or focus area...">{{ profile.bio }}</textarea>
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-orange px-4 py-2">
+                                    <i class="fa-solid fa-floppy-disk me-1"></i> Save Profile Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 2. AI INFERENCE ENGINE TAB -->
+                <div class="tab-pane fade" id="tab-ai" role="tabpanel">
+                    <div class="card card-custom p-4">
+                        <div class="border-bottom border-secondary border-opacity-25 pb-3 mb-4">
+                            <h5 class="fw-bold text-white mb-1"><i class="fa-solid fa-brain text-orange me-2"></i>AI Detection &amp; Inference Preferences</h5>
+                            <p class="small text-muted mb-0">Configure your default deep learning backbones, sampling rates, and heatmap colormaps.</p>
+                        </div>
+
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="update_ai_prefs">
+
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label small text-white fw-semibold">Default Neural Architecture</label>
+                                    <select name="default_model" class="form-select">
+                                        <option value="EfficientNet-B0" {% if profile.default_model == 'EfficientNet-B0' %}selected{% endif %}>EfficientNet-B0 (94.8% Acc &bull; SOTA Recommended)</option>
+                                        <option value="Xception" {% if profile.default_model == 'Xception' %}selected{% endif %}>XceptionNet (FF++ Benchmark Standard)</option>
+                                        <option value="ResNet-50" {% if profile.default_model == 'ResNet-50' %}selected{% endif %}>ResNet-50 (Deep Residual Baseline)</option>
+                                        <option value="MobileNet-V3" {% if profile.default_model == 'MobileNet-V3' %}selected{% endif %}>MobileNet-V3 (Ultra-Fast Edge Inference)</option>
+                                    </select>
+                                    <div class="form-text text-muted" style="font-size: 0.75rem;">Selected model will be prioritized across single-image and video timeline scans.</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label small text-white fw-semibold">Grad-CAM Heatmap Colormap Palette</label>
+                                    <select name="gradcam_colormap" class="form-select">
+                                        <option value="JET" {% if profile.gradcam_colormap == 'JET' %}selected{% endif %}>JET Colormap (Rainbow Blue to Red High Contrast)</option>
+                                        <option value="INFERNO" {% if profile.gradcam_colormap == 'INFERNO' %}selected{% endif %}>Inferno (Black - Purple - Red - Yellow)</option>
+                                        <option value="VIRIDIS" {% if profile.gradcam_colormap == 'VIRIDIS' %}selected{% endif %}>Viridis (Perceptually Uniform Teal to Yellow)</option>
+                                        <option value="MAGMA" {% if profile.gradcam_colormap == 'MAGMA' %}selected{% endif %}>Magma (Dark Violet to Orange White)</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label small text-white fw-semibold">Default Video Frame Sample Rate (FPS)</label>
+                                    <select name="default_fps" class="form-select">
+                                        <option value="1.0" {% if profile.default_fps == 1.0 %}selected{% endif %}>1.0 FPS (Fast Overview &bull; 1 frame/sec)</option>
+                                        <option value="2.0" {% if profile.default_fps == 2.0 %}selected{% endif %}>2.0 FPS (Balanced Forensic Default)</option>
+                                        <option value="4.0" {% if profile.default_fps == 4.0 %}selected{% endif %}>4.0 FPS (High Precision Forensic Timeline)</option>
+                                        <option value="8.0" {% if profile.default_fps == 8.0 %}selected{% endif %}>8.0 FPS (Deep Frame-by-Frame Audit)</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label small text-white fw-semibold">
+                                        Risk Classification Sensitivity: <span id="riskValue" class="text-orange fw-bold">{{ profile.risk_threshold }}%</span>
+                                    </label>
+                                    <input type="range" name="risk_threshold" class="form-range" min="30" max="80" step="5" value="{{ profile.risk_threshold }}" oninput="document.getElementById('riskValue').textContent = this.value + '%';">
+                                    <div class="d-flex justify-content-between text-muted small" style="font-size: 0.72rem;">
+                                        <span>30% (High Alert)</span>
+                                        <span>50% (Standard)</span>
+                                        <span>80% (Conservative)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-orange px-4 py-2">
+                                    <i class="fa-solid fa-sliders me-1"></i> Save AI Engine Preferences
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 3. SECURITY & 2FA TAB -->
+                <div class="tab-pane fade" id="tab-security" role="tabpanel">
+                    <div class="d-flex flex-column gap-4">
+                        <!-- Password Change Card -->
+                        <div class="card card-custom p-4">
+                            <div class="border-bottom border-secondary border-opacity-25 pb-3 mb-4">
+                                <h5 class="fw-bold text-white mb-1"><i class="fa-solid fa-lock text-orange me-2"></i>Update Password</h5>
+                                <p class="small text-muted mb-0">Ensure your account uses a strong, random password for security.</p>
+                            </div>
+
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="change_password">
+
+                                <div class="mb-3">
+                                    <label class="form-label small text-white">Current Password</label>
+                                    <input type="password" name="current_password" class="form-control" required placeholder="Enter current password">
+                                </div>
+
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label small text-white">New Password</label>
+                                        <input type="password" name="new_password" class="form-control" required placeholder="Minimum 6 characters">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small text-white">Confirm New Password</label>
+                                        <input type="password" name="confirm_password" class="form-control" required placeholder="Repeat new password">
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-orange px-4 py-2">
+                                        <i class="fa-solid fa-key me-1"></i> Change Password
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- 2FA Preferences Card -->
+                        <div class="card card-custom p-4">
+                            <div class="border-bottom border-secondary border-opacity-25 pb-3 mb-4">
+                                <h5 class="fw-bold text-white mb-1"><i class="fa-solid fa-envelope-circle-check text-orange me-2"></i>Two-Factor Authentication (2FA)</h5>
+                                <p class="small text-muted mb-0">Protect manual password sign-ins with an email OTP security verification layer.</p>
+                            </div>
+
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="update_security_prefs">
+
+                                <div class="d-flex justify-content-between align-items-center p-3 rounded-3 mb-3" style="background: var(--bg-surface); border: 1px solid var(--border-color);">
+                                    <div>
+                                        <div class="fw-bold text-white">Email 2FA OTP for Password Logins</div>
+                                        <div class="small text-muted">Dispatches a 6-digit OTP to <strong>{{ profile_user.email }}</strong> whenever you sign in using manual credentials.</div>
+                                    </div>
+                                    <div class="form-check form-switch fs-4">
+                                        <input class="form-check-input" type="checkbox" name="enable_2fa_email" role="switch" {% if profile.enable_2fa_email %}checked{% endif %}>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-outline-orange px-4 py-2">
+                                        <i class="fa-solid fa-shield-check me-1"></i> Update 2FA Setting
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. API KEYS & WEBHOOKS TAB -->
+                <div class="tab-pane fade" id="tab-api" role="tabpanel">
+                    <div class="d-flex flex-column gap-4">
+                        <!-- API Key Card -->
+                        <div class="card card-custom p-4">
+                            <div class="border-bottom border-secondary border-opacity-25 pb-3 mb-4">
+                                <h5 class="fw-bold text-white mb-1"><i class="fa-solid fa-key text-orange me-2"></i>REST API Access Key</h5>
+                                <p class="small text-muted mb-0">Use this token to authenticate programmatic deepfake detection requests via Python / cURL.</p>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label small text-white fw-semibold">Live Secret Key</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control font-monospace text-white" id="apiKeyInput" value="{{ profile.api_key }}" readonly style="letter-spacing: 1px; background: #0b0d11 !important;">
+                                    <button class="btn btn-outline-mono" type="button" onclick="navigator.clipboard.writeText(document.getElementById('apiKeyInput').value); alert('API Key copied to clipboard!');">
+                                        <i class="fa-solid fa-copy me-1"></i> Copy
+                                    </button>
+                                    <a href="{% url 'regenerate_api_key' %}" class="btn btn-outline-orange" onclick="return confirm('Are you sure you want to regenerate your API Key? Any existing integrations will need to be updated.');">
+                                        <i class="fa-solid fa-arrows-rotate me-1"></i> Regenerate
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- API Example Snippet -->
+                            <div class="p-3 rounded-3" style="background: #090a0d; border: 1px solid var(--border-color);">
+                                <div class="small text-muted text-uppercase fw-bold mb-2" style="font-size: 0.7rem;">Python SDK Example</div>
+                                <pre class="mb-0 text-white" style="font-family: Consolas, monospace; font-size: 0.8rem; overflow-x: auto;"><code>import requests
+
+headers = {"Authorization": "Bearer {{ profile.api_key }}"}
+files = {"media_file": open("target_video.mp4", "rb")}
+
+response = requests.post("http://127.0.0.1:8000/api/detect-frame/", headers=headers, files=files)
+print(response.json())</code></pre>
+                            </div>
+                        </div>
+
+                        <!-- Webhooks Card -->
+                        <div class="card card-custom p-4">
+                            <div class="border-bottom border-secondary border-opacity-25 pb-3 mb-4">
+                                <h5 class="fw-bold text-white mb-1"><i class="fa-solid fa-bell text-orange me-2"></i>Alert Webhook Integration</h5>
+                                <p class="small text-muted mb-0">TruthVision can send asynchronous POST alerts when high-risk deepfakes are identified.</p>
+                            </div>
+
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="update_webhook">
+
+                                <div class="mb-3">
+                                    <label class="form-label small text-white">Webhook Notification URL</label>
+                                    <input type="url" name="webhook_url" class="form-control" value="{{ profile.webhook_url }}" placeholder="https://api.yourcompany.com/webhook/deepfake-alerts">
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-orange px-4 py-2">
+                                        <i class="fa-solid fa-link me-1"></i> Save Webhook URL
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. SCAN AUDIT LOG TAB -->
+                <div class="tab-pane fade" id="tab-audit" role="tabpanel">
+                    <div class="card card-custom p-4">
+                        <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-3 mb-4">
+                            <div>
+                                <h5 class="fw-bold text-white mb-1"><i class="fa-solid fa-clock-rotate-left text-orange me-2"></i>Recent Personal Detection Scans</h5>
+                                <p class="small text-muted mb-0">Your recent forensic scans, verdicts, and cryptographic certificates.</p>
+                            </div>
+                            <a href="{% url 'export_scan_history' %}" class="btn btn-sm btn-orange rounded-pill px-3">
+                                <i class="fa-solid fa-file-csv me-1"></i> Download CSV Audit
+                            </a>
+                        </div>
+
+                        {% if user_records %}
+                        <div class="table-responsive">
+                            <table class="table table-custom align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Media File</th>
+                                        <th>Type</th>
+                                        <th>Verdict</th>
+                                        <th>Risk Score</th>
+                                        <th>Technique</th>
+                                        <th>Date</th>
+                                        <th>Certificate</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for rec in user_records %}
+                                    <tr>
+                                        <td class="fw-semibold text-white">{{ rec.media_name }}</td>
+                                        <td>
+                                            <span class="badge bg-dark border border-secondary text-white small px-2">{{ rec.media_type }}</span>
+                                        </td>
+                                        <td>
+                                            {% if rec.classification == 'DEEPFAKE' %}
+                                            <span class="badge bg-danger px-2"><i class="fa-solid fa-triangle-exclamation me-1"></i> DEEPFAKE</span>
+                                            {% else %}
+                                            <span class="badge bg-success px-2"><i class="fa-solid fa-circle-check me-1"></i> REAL</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold {% if rec.risk_score >= 50 %}text-danger{% else %}text-success{% endif %}">
+                                                {{ rec.risk_score|floatformat:1 }}%
+                                            </span>
+                                        </td>
+                                        <td class="small text-muted">{{ rec.likely_technique|default:"Standard Scan" }}</td>
+                                        <td class="small text-muted">{{ rec.created_at|date:"M d, Y H:i" }}</td>
+                                        <td>
+                                            <a href="{% url 'forensic_report' %}?record_id={{ rec.id }}" target="_blank" class="btn btn-sm btn-outline-mono py-0 px-2 rounded">
+                                                <i class="fa-solid fa-eye me-1"></i> View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fa-solid fa-folder-open fa-3x text-muted mb-3"></i>
+                            <h6 class="text-white">No Detection Records Found</h6>
+                            <p class="small text-muted mb-3">You have not executed any image or video detection scans yet.</p>
+                            <a href="{% url 'image_detect' %}" class="btn btn-sm btn-orange rounded-pill px-3">Start Image Scan</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const avatarInput = document.getElementById('avatar_file_input');
+    const avatarImg = document.getElementById('avatar-preview-img');
+    const avatarFallback = document.getElementById('avatar-preview-fallback');
+    const removeAvatarBtn = document.getElementById('remove-avatar-btn');
+    const removeAvatarInput = document.getElementById('remove_avatar_input');
+
+    if (avatarInput) {
+        avatarInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    if (avatarImg) {
+                        avatarImg.src = evt.target.result;
+                        avatarImg.classList.remove('d-none');
+                    }
+                    if (avatarFallback) {
+                        avatarFallback.classList.add('d-none');
+                    }
+                    if (removeAvatarInput) {
+                        removeAvatarInput.value = 'false';
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    if (removeAvatarBtn) {
+        removeAvatarBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to remove your profile photo? Click "Save Profile Changes" afterwards to commit.')) {
+                if (avatarImg) {
+                    avatarImg.src = '';
+                    avatarImg.classList.add('d-none');
+                }
+                if (avatarFallback) {
+                    avatarFallback.classList.remove('d-none');
+                }
+                if (removeAvatarInput) {
+                    removeAvatarInput.value = 'true';
+                }
+                if (avatarInput) {
+                    avatarInput.value = '';
+                }
+                removeAvatarBtn.classList.add('d-none');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+
